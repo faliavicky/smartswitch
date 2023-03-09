@@ -1,24 +1,39 @@
-### Smart Switch
-For measuring voltage and current values of the load.
+# Smart Switch
+A Smart Switch project for AC load power monitoring, data logging with micro SD, scheduling from mobile app with Real-Time Clock, and remote on/off load control using ESP32 and MQTT.
 
-- [x] Single Output
-- [ ] Multiple Outputs 1 Phase (on-going)
-- [ ] Multiple Outputs 3 Phase
+### To-Do List
+- [x] <b>Single Output Smart Switch</b>
+   - [x] Wattmeter
+      - [x] Voltage
+      - [x] Current
+   - [x] MQTT
+   - [x] Publish wattmeter to MQTT
+   - [x] On/Off
+   - [x] On/Off with MQTT
+   - [x] RTC
+      - [ ] Scheduling with RTC
+      - [ ] Scheduling with RTC and MQTT
+   - [x] Data Logging
+      - [x] RTC Data Logging
+      - [ ] Upload Data Logging after ESP32 connected to Wi-Fi
+      - [ ] Delete previous data after uploading
+- [ ] <b>Multiple Outputs Smart Switch 1 Phase</b>
+- [ ] <b>Multiple Outputs Smart Switch 3 Phase</b>
 
 ---
 
-Sensors used:
+### Sensors used
 
-| Sensors  | Type |
-| ------------- | ------------- |
-| Voltage Sensor  | ZMPT101B  |
-| Current Sensor  | ACS712  |
-| RTC  | DS3231  |
-| Micro SD Module  | ACS712  |
+| Sensors  | Type | Capacity |
+| ------------- | ------------- | ------------- |
+| Voltage Sensor  | ZMPT101B  | 220V/380V |
+| Current Sensor  | ACS712  | 20A |
+| RTC  | DS3231  |  |
+| Micro SD Module  |  |  |
 
 ---
 
-Components used:
+### Components used
 
 | Components |
 | ------------- |
