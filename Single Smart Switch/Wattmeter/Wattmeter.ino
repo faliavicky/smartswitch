@@ -1,7 +1,7 @@
 #include "ACS712.h"
 #include <Filters.h>
 #define TRIGGER_PIN 0
-int relay = 16;
+int relay = 27;
 
 float testFrequency = 50;                     // signal frequency (Hz)
 float windowLength = 40.0/testFrequency;     // how long to average the signal, for statistist

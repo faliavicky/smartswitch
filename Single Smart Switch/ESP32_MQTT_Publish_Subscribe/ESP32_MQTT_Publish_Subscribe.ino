@@ -1,14 +1,30 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <Wire.h>
+#include "ACS712.h"
+#include <Filters.h>
+#define TRIGGER_PIN 0
 
-// Replace the next variables with your SSID/Password combination
+// ---- SENSOR TEGANGAN & SENSOR ARUS
+float testFrequency = 50;                     // signal frequency (Hz)
+float windowLength = 40.0 / testFrequency;   // how long to average the signal, for statistist
+int vSensor = 0;
+float intercept = 0;  // adjust untuk kalibrasi
+float slope = 0.0127;   // adjust untuk kalibrasi
+//0.0127
+//float slope = 0.017;
+float voltageSensor;
+unsigned long printPeriod = 1000;     //Refresh rate
+unsigned long previousMillis = 0;
+ACS712 currentSensor(ACS712_20A, 35);
+
+// ---- WIFI
 const char* ssid = "REPLACE_WITH_YOUR_SSID";
 const char* password = "REPLACE_WITH_YOUR_PASSWORD";
 
-// Add your MQTT Broker IP address, example:
+// ---- MQTT
 //const char* mqtt_server = "192.168.1.144";
-const char* mqtt_server = "YOUR_MQTT_BROKER_IP_ADDRESS";
+const char* mqtt_server = "broker.hivemq.com";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -16,8 +32,8 @@ long lastMsg = 0;
 char msg[50];
 int value = 0;
 
-float temperature = 0;
-float humidity = 0;
+//float temperature = 0;
+//float humidity = 0;
 
 // RELAY
 const int relay = 27;
@@ -26,16 +42,14 @@ void setup() {
   Serial.begin(115200);
   // default settings
   // (you can also pass in a Wire library object like &Wire2)
-  //status = bme.begin();  
-  if (!bme.begin(0x76)) {
-    Serial.println("Could not find a valid BME280 sensor, check wiring!");
-    while (1);
-  }
+
   setup_wifi();
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
 
   pinMode(relay, OUTPUT);
+
+  currentSensor.setZeroPoint(1879);
 }
 
 void setup_wifi() {
@@ -63,7 +77,7 @@ void callback(char* topic, byte* message, unsigned int length) {
   Serial.print(topic);
   Serial.print(". Message: ");
   String messageTemp;
-  
+
   for (int i = 0; i < length; i++) {
     Serial.print((char)message[i]);
     messageTemp += (char)message[i];
@@ -72,17 +86,17 @@ void callback(char* topic, byte* message, unsigned int length) {
 
   // Feel free to add more if statements to control more GPIOs with MQTT
 
-  // If a message is received on the topic esp32/output, you check if the message is either "on" or "off". 
+  // If a message is received on the topic esp32/output, you check if the message is either "on" or "off".
   // Changes the output state according to the message
-  if (String(topic) == "esp32/output") {
+  if (String(topic) == "/venambak/admin/control") {
     Serial.print("Changing output to ");
-    if(messageTemp == "1"){
+    if (messageTemp == "1") {
       Serial.println("ON");
-      digitalWrite(ledPin, HIGH);
+      digitalWrite(relay, HIGH);
     }
-    else if(messageTemp == "0"){
+    else if (messageTemp == "0") {
       Serial.println("OFF");
-      digitalWrite(ledPin, LOW);
+      digitalWrite(relay, LOW);
     }
   }
 }
@@ -95,7 +109,7 @@ void reconnect() {
     if (client.connect("ESP8266Client")) {
       Serial.println("connected");
       // Subscribe
-      client.subscribe("esp32/output");
+      client.subscribe("/venambak/admin/control");
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -111,30 +125,52 @@ void loop() {
   }
   client.loop();
 
-  long now = millis();
-  if (now - lastMsg > 5000) {
-    lastMsg = now;
-    
-    // Temperature in Celsius
-    temperature = bme.readTemperature();   
-    // Uncomment the next line to set temperature in Fahrenheit 
-    // (and comment the previous temperature line)
-    //temperature = 1.8 * bme.readTemperature() + 32; // Temperature in Fahrenheit
-    
-    // Convert the value to a char array
-    char tempString[8];
-    dtostrf(temperature, 1, 2, tempString);
-    Serial.print("Temperature: ");
-    Serial.println(tempString);
-    client.publish("esp32/temperature", tempString);
+  RunningStatistics inputStats;
+  inputStats.setWindowSecs( windowLength );
+  while ( true ) {
+    vSensor = analogRead(34);                // read the analog in value:
+    inputStats.input(vSensor);                   // log to Stats function
 
-    humidity = bme.readHumidity();
-    
-    // Convert the value to a char array
-    char humString[8];
-    dtostrf(humidity, 1, 2, humString);
-    Serial.print("Humidity: ");
-    Serial.println(humString);
-    client.publish("esp32/humidity", humString);
+    if ((unsigned long)(millis() - previousMillis) >= printPeriod) {
+      previousMillis = millis();                // update time every second
+
+      voltageSensor = intercept + slope * inputStats.sigma(); //Calibartions for offset and amplitude
+      voltageSensor = voltageSensor * (49.3231);             //Further calibrations for the amplitude
+
+      // We use 230V because it is the common standard in European countries
+      // Change to your local, if necessary
+      float U = voltageSensor;
+
+      // To measure current we need to know the frequency of current
+      // By default 50Hz is used, but you can specify desired frequency
+      // as first argument to getCurrentAC() method, if necessary
+      float I = (currentSensor.getCurrentAC()) / 10;
+
+      if (U < 100) {
+        U = 0;
+        I = 0;
+      }
+
+      // To calculate the power we need voltage multiplied by current
+      float P = U * I;
+
+      Serial.println(String("V = ") + U + " V");
+      Serial.println(String("I = ") + I + " A");
+      Serial.println(String("P = ") + P + " Watts");
+
+      // Convert the value to a char array
+      char PString[100];
+      dtostrf(P, 8, 2, PString);
+//      Serial.print("Humidity: ");
+//      Serial.println(humString);
+      client.publish("/venambak/admin/monitor", PString);
+
+      // Convert the value to a char array
+//      char humString[100];
+//      dtostrf(humidity, 8, 2, humString);
+//      Serial.print("Humidity: ");
+//      Serial.println(humString);
+//      client.publish("esp32/humidity", humString);
+    }
   }
-}
+  }

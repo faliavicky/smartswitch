@@ -1,0 +1,22 @@
+void loop() {
+  if (!mqttClient.connected())
+    reconnect();
+  mqttClient.loop();
+  long now = millis();
+  if (now - last_time > 60000) {
+    // Send data
+    float temp = bme.readTemperature();
+    float hum = bme.readHumidity();
+    float pres = bme.readPressure() / 100;
+    // Publishing data throgh MQTT
+    sprintf(data, "%f", temp);
+    Serial.println(data);
+    mqttClient.publish("/swa/temperature", data);
+    sprintf(data, "%f", hum);
+    Serial.println(hum);
+    mqttClient.publish("/swa/humidity", data);
+    sprintf(data, "%f", pres);
+    Serial.println(pres);
+    mqttClient.publish("/swa/pressure", data);
+    last_time = now;
+  }
