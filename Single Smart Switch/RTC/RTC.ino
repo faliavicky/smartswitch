@@ -39,7 +39,7 @@ void setup () {
 
 void loop () {
     DateTime now = rtc.now();
-
+    // -----> year/month/date (day) hour:minute:second
     Serial.print(now.year(), DEC);
     Serial.print('/');
     Serial.print(now.month(), DEC);
