@@ -19,11 +19,10 @@ unsigned long previousMillis = 0;
 ACS712 currentSensor(ACS712_20A, 35);
 
 // ---- WIFI
-const char* ssid = "REPLACE_WITH_YOUR_SSID";
-const char* password = "REPLACE_WITH_YOUR_PASSWORD";
+const char* ssid = "Jake Sim";
+const char* password = "falia2811";
 
 // ---- MQTT
-//const char* mqtt_server = "192.168.1.144";
 const char* mqtt_server = "broker.hivemq.com";
 
 WiFiClient espClient;
