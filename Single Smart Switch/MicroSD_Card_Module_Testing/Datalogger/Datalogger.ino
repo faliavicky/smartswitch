@@ -1,30 +1,40 @@
+/*
+ * Created by ArduinoGetStarted.com
+ *
+ * This example code is in the public domain
+ *
+ * Tutorial page: https://arduinogetstarted.com/tutorials/arduino-micro-sd-card
+ */
+
 #include <SD.h>
 
-#define SD_CS 5
+#define PIN_SPI_CS 5
 
 File myFile;
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
 
-  // Initialize the SD card
-  if (!SD.begin(SD_CS)) {
-    Serial.println("Failed to mount the SD card!");
-    return;
+  if (!SD.begin(PIN_SPI_CS)) {
+    Serial.println(F("SD CARD FAILED, OR NOT PRESENT!"));
+    while (1); // don't do anything more:
   }
-  Serial.println("SD card mounted successfully!");
 
-  // Open a file for writing
-  myFile = SD.open("/test.txt", FILE_WRITE);
+  Serial.println(F("SD CARD INITIALIZED."));
 
-  // Write some data to the file
-  if (myFile) {
-    myFile.println("Hello from ESP32!");
+  if (!SD.exists("arduino.txt")) {
+    Serial.println(F("arduino.txt doesn't exist. Creating arduino.txt file..."));
+    // create a new file by opening a new file and immediately close it
+    myFile = SD.open("arduino.txt", FILE_WRITE);
     myFile.close();
-    Serial.println("Data written to file successfully!");
-  } else {
-    Serial.println("Failed to open file for writing!");
   }
+
+  // recheck if file is created or not
+  if (SD.exists("arduino.txt"))
+    Serial.println(F("arduino.txt exists on SD Card."));
+  else
+    Serial.println(F("arduino.txt doesn't exist on SD Card."));
 }
 
-void loop() {}
+void loop() {
+}

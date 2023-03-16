@@ -4,23 +4,23 @@
 
 #define SD_CS 5
 
-void writeFile(fs::FS &fs, const char * path, const char * message) {
-  Serial.printf("Writing file: %s\n", path);
+void writeFile(fs::FS &fs, const char * path, const char * message){
+    Serial.printf("Writing file: %s\n", path);
 
-  File file = fs.open(path, FILE_WRITE);
-  if (!file) {
-    Serial.println("Failed to open file for writing");
-    return;
-  }
-  if (file.print(message)) {
-    Serial.println("File written");
-  } else {
-    Serial.println("Write failed");
-  }
-  file.close();
+    File file = fs.open(path, FILE_WRITE);
+    if(!file){
+        Serial.println("Failed to open file for writing");
+        return;
+    }
+    if(file.print(message)){
+        Serial.println("File written");
+    } else {
+        Serial.println("Write failed");
+    }
+    file.close();
 }
 
-void setup() {
+void setup(){
   Serial.begin(9600);
   SD.begin(SD_CS);
   if (!SD.begin(SD_CS)) {
@@ -33,14 +33,13 @@ void setup() {
     return;
   }
   Serial.println("Menginisialisasi kartu SD...");
-
+  
   writeFile(SD, "/RobotikID.txt", "Hai, Ini Robotik Indonesia ");
   /*
-    Menyimpan Tulisan atau String "Hai, Ini Robotik Indonesia "
-    pada file yang bernama RobotikID.txt
-  */
+  Menyimpan Tulisan atau String "Hai, Ini Robotik Indonesia "
+  pada file yang bernama RobotikID.txt
+  */ 
 }
 
-void loop() {
-
+void loop(){
 }
