@@ -5,6 +5,22 @@
 #include <Filters.h>
 #define TRIGGER_PIN 0
 #include <ArduinoJson.h>
+int relay = 27;
+//float P = 220;
+
+// Update these with values suitable for your network.
+
+const char* ssid = "Jake Sim";
+const char* password = "falia2811";
+const char* mqtt_server = "broker.hivemq.com";
+
+WiFiClient espClient;
+PubSubClient client(espClient);
+unsigned long lastMsg = 0;
+#define MSG_BUFFER_SIZE  (50)
+char msg[MSG_BUFFER_SIZE];
+int value = 0;
+// -------------
 
 // ---- SENSOR TEGANGAN & SENSOR ARUS
 float testFrequency = 50;                     // signal frequency (Hz)
@@ -19,49 +35,16 @@ unsigned long printPeriod = 1000;     //Refresh rate
 unsigned long previousMillis = 0;
 ACS712 currentSensor(ACS712_20A, 35);
 
-// ---- WIFI
-const char* ssid = "Jake Sim";
-const char* password = "falia2811";
-
-// ---- MQTT
-const char* mqtt_server = "broker.hivemq.com";
-
-WiFiClient espClient;
-PubSubClient client(espClient);
-long lastMsg = 0;
-char msg[50];
-int value = 0;
-
-//float temperature = 0;
-//float humidity = 0;
-
-// ----- RELAY
-const int relay = 27;
-
-void setup() {
-  Serial.begin(115200);
-  // default settings
-  // (you can also pass in a Wire library object like &Wire2)
-
-  // WIFI
-  setup_wifi();
-
-  // MQTT
-  client.setServer(mqtt_server, 1883);
-  client.setCallback(callback);
-  // RELAY
-  pinMode(relay, OUTPUT);
-  // ACS712
-  currentSensor.setZeroPoint(1879);
-}
 
 void setup_wifi() {
+
   delay(10);
   // We start by connecting to a WiFi network
   Serial.println();
   Serial.print("Connecting to ");
   Serial.println(ssid);
 
+  WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -69,49 +52,59 @@ void setup_wifi() {
     Serial.print(".");
   }
 
+  randomSeed(micros());
+
   Serial.println("");
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
 }
 
-void callback(char* topic, byte* message, unsigned int length) {
-  Serial.print("Message arrived on topic: ");
+void callback(char* topic, byte* payload, unsigned int length) {
+  Serial.print("Message arrived [");
   Serial.print(topic);
-  Serial.print(". Message: ");
-  String messageTemp;
-
+  Serial.print("] ");
   for (int i = 0; i < length; i++) {
-    Serial.print((char)message[i]);
-    messageTemp += (char)message[i];
+    Serial.print((char)payload[i]);
   }
   Serial.println();
 
-  // Feel free to add more if statements to control more GPIOs with MQTT
+  StaticJsonDocument<200> doc;
+  //char* json = topic;
+  DeserializationError error = deserializeJson(doc, (char*)payload);
 
-  // If a message is received on the topic esp32/output, you check if the message is either "on" or "off".
-  // Changes the output state according to the message
-  if (String(topic) == "/venambak/admin/control") {
-    Serial.print("Changing output to ");
-    if (messageTemp == "1") {
-      Serial.println("ON");
-      digitalWrite(relay, HIGH);
-    }
-    else if (messageTemp == "0") {
-      Serial.println("OFF");
-      digitalWrite(relay, LOW);
-    }
+  bool receive_mode = doc["automatic"];
+  bool receive_state = doc["state"];
+
+  Serial.println(receive_state);
+
+  // Switch on the LED if an 1 was received as first character
+  if (receive_state == 1) {
+    digitalWrite(relay, HIGH);   // Turn the LED on (Note that LOW is the voltage level
+    Serial.println("ON");
+    // but actually the LED is on; this is because
+    // it is active low on the ESP-01)
+  } else {
+    digitalWrite(relay, LOW);  // Turn the LED off by making the voltage HIGH
+    Serial.println("OFF");
+    //Serial.println( TYPE_NAME(receive_state));
   }
+
 }
 
 void reconnect() {
   // Loop until we're reconnected
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
+    // Create a random client ID
+    String clientId = "ESP32";
+    clientId += String(random(0xffff), HEX);
     // Attempt to connect
-    if (client.connect("ESP8266Client")) {
+    if (client.connect(clientId.c_str())) {
       Serial.println("connected");
-      // Subscribe
+      // Once connected, publish an announcement...
+      client.publish("/venambak/admin/monitor", "hello world");
+      // ... and resubscribe
       client.subscribe("/venambak/admin/control");
     } else {
       Serial.print("failed, rc=");
@@ -122,15 +115,29 @@ void reconnect() {
     }
   }
 }
+
+void setup() {
+  pinMode(relay, OUTPUT);     // Initialize the relay pin as an output
+  Serial.begin(115200);
+  setup_wifi();
+  client.setServer(mqtt_server, 1883);
+  client.setCallback(callback);
+  currentSensor.setZeroPoint(1879);
+}
+
 void loop() {
-  if (!client.connected()) {
-    reconnect();
-  }
-  client.loop();
+
+
 
   RunningStatistics inputStats;
   inputStats.setWindowSecs( windowLength );
   while ( true ) {
+    if (!client.connected()) {
+      reconnect();
+    }
+    client.loop();
+
+
     vSensor = analogRead(34);                // read the analog in value:
     inputStats.input(vSensor);                   // log to Stats function
 
@@ -161,42 +168,26 @@ void loop() {
       Serial.println(String("I = ") + I + " A");
       Serial.println(String("P = ") + P + " Watts");
 
+      DynamicJsonDocument root(1024);
+      root["arus"] = String(U);
+      root["tegangan"] = String(I);
+      root["daya"] = String(P);
 
-      while (!Serial) continue;
-      StaticJsonDocument<200> sensor1;
-      JsonArray daya = sensor1.createNestedArray("daya");
-      daya.add(P);
-      //      JsonArray tegangan = sensor1.createNestedArray("tegangan");
-      //      tegangan.add(U);
+      char myBuffer[1023];
+      serializeJson(root, myBuffer);
+      client.publish("/venambak/admin/monitor", myBuffer);
+      Serial.println(myBuffer);
 
-      serializeJson(sensor1, Serial);
-      Serial.println();
-      // serializeJsonPretty(sensor1, Serial);
-
-      //PString = String(P);
-      //      char PString[100];
-      //      dtostrf(P, 8, 2, PString);
-
-      const char* json = sprintf("{\"daya\": %s\"}", PString );
-      //      //      const char* json = "{\"daya\":\ + PString \}";
-
-      //Serial.println(json);
-      //Serial.println(PString);
-      client.publish("/venambak/admin/monitor", json);
-
-      // Convert the value to a char array
-      //      char PString[100];
-      //      dtostrf(P, 8, 2, PString);
-      //      Serial.print("Humidity: ");
-      //      Serial.println(humString);
-      //      client.publish("/venambak/admin/monitor", PString);
-
-      // Convert the value to a char array
-      //      char humString[100];
-      //      dtostrf(humidity, 8, 2, humString);
-      //      Serial.print("Humidity: ");
-      //      Serial.println(humString);
-      //      client.publish("esp32/humidity", humString);
+      //      unsigned long now = millis();
+      //      if (now - lastMsg > 2000) {
+      //
+      //        //        lastMsg = now;
+      //        ++value;
+      //        snprintf (msg, MSG_BUFFER_SIZE, "%f", P);
+      //        Serial.print("Publish message: ");
+      //        Serial.println(msg);
+      //        client.publish("/venambak/admin/monitor", msg);
     }
+
   }
 }
