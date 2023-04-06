@@ -54,10 +54,10 @@ void loop() {
       // as first argument to getCurrentAC() method, if necessary
       float I = (currentSensor.getCurrentAC())/10;
       
-      if(U < 100){
-        U = 0;
-        I = 0;
-        }
+//      if(U < 100){
+//        U = 0;
+//        I = 0;
+//        }
         
       // To calculate the power we need voltage multiplied by current
       float P = U * I;

@@ -5,7 +5,8 @@
 #include <Filters.h>
 #define TRIGGER_PIN 0
 #include <ArduinoJson.h>
-int relay = 27;
+int relay = 5; 
+//int relay = 27;
 //float P = 220;
 
 // -------- WIFI and MQTT --------
@@ -81,9 +82,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   } else {
     digitalWrite(relay, LOW);  // Turn the switch off
     Serial.println("OFF");
-    //Serial.println( TYPE_NAME(receive_state));
   }
-
 }
 
 void reconnect() {
@@ -117,6 +116,7 @@ void setup() {
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
   currentSensor.setZeroPoint(1879);
+  //digitalWrite(relay_lama, LOW);
 }
 
 void loop() {
@@ -146,10 +146,10 @@ void loop() {
     // By default 50Hz is used, but you can specify desired frequency
     // as first argument to getCurrentAC() method, if necessary
     float I = (currentSensor.getCurrentAC()) / 10;
-          if (U < 100) {
-            U = 0;
-            I = 0;
-          }
+//          if (U < 100) {
+//            U = 0;
+//            I = 0;
+//          }
 
     // To calculate the power we need voltage multiplied by current
     float P = U * I;
