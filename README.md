@@ -1,30 +1,30 @@
 # Smart Switch
 A Smart Switch system for real-time remote controlling and monitoring AC loads with IoT.
-This project is also equipped with data logging using a micro SD card module and scheduling from a mobile app with real-time clock (RTC) module.
+This project is also equipped with data logging using a micro SD card module and scheduling from a mobile app with a real-time clock (RTC) module.
 ESP32 is used as the microcontroller with MQTT communication.
 The variables that are being monitored are the voltage, current, and watt values.
 The loads can be controlled (on/off) by users through a mobile app.
 
-- [x] <b>Single Output Smart Switch</b>
-   - [x] Wattmeter
+[Partial_Testing](https://github.com/faliavicky/smartswitch/tree/main/Single%20Smart%20Switch/Partial_Testing) consists of each code for different purposes.
+[Smart_Switch](https://github.com/faliavicky/smartswitch/tree/main/Single%20Smart%20Switch/Smart_Switch) consists of the Smart Switch system codes.
+
+- [x] [<b>Single Output Smart Switch</b>](https://github.com/faliavicky/smartswitch/tree/main/Single%20Smart%20Switch/Smart_Switch)
+   - [x] [Wattmeter](https://github.com/faliavicky/smartswitch/tree/main/Single%20Smart%20Switch/Partial_Testing/Wattmeter)
       - [x] Voltage
       - [x] Current
-   - [x] MQTT
-   - [x] Publish wattmeter to MQTT
+   - [x] [MQTT](https://github.com/faliavicky/smartswitch/tree/main/Single%20Smart%20Switch/Partial_Testing/MQTT_and_JSON_Serialization)
+   - [x] [Publish wattmeter to MQTT](https://github.com/faliavicky/smartswitch/tree/main/Single%20Smart%20Switch/Partial_Testing/MQTT_Wattmeter)
    - [x] On/Off
    - [x] On/Off with MQTT
-   - [x] RTC
+   - [x] [RTC](https://github.com/faliavicky/smartswitch/tree/main/Single%20Smart%20Switch/Partial_Testing/RTC)
       - [x] Scheduling with RTC
       - [ ] Scheduling with RTC and MQTT
-   - [x] Data Logging
+   - [x] [Data Logging](https://github.com/faliavicky/smartswitch/tree/main/Single%20Smart%20Switch/Partial_Testing/MicroSD_Card_Module_Testing)
       - [ ] RTC Data Logging
       - [ ] Upload Data Logging after ESP32 is connected to Wi-Fi
       - [ ] Delete previous data after uploading
-- [ ] <b>Multiple Outputs Smart Switch 1 Phase</b>
-- [ ] <b>Multiple Outputs Smart Switch 3 Phase</b>
 
-
-# Sensors and Components used
+### Sensors and Components used
 
 | Sensors  | Type | Capacity |
 | ------------- | ------------- | ------------- |
@@ -39,7 +39,7 @@ The loads can be controlled (on/off) by users through a mobile app.
 | Micro SD Module |
 
 
-# Pins
+### Pins
 
 | Components  | ESP32 Pin |
 | ------------- | ------------- |
