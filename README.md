@@ -5,6 +5,8 @@ ESP32 is used as the microcontroller with MQTT communication.
 The variables that are being monitored are the voltage, current, and watt values.
 The loads can be controlled (on/off) by users through a mobile app.
 
+![Arduino](https://img.shields.io/badge/-Arduino-00979D?style=for-the-badge&logo=Arduino&logoColor=white) ![Espressif](https://img.shields.io/badge/espressif-E7352C.svg?style=for-the-badge&logo=espressif&logoColor=white) 
+
 [Partial_Testing](https://github.com/faliavicky/smartswitch/tree/main/Single%20Smart%20Switch/Partial_Testing) consists of each code for different purposes.
 [Smart_Switch](https://github.com/faliavicky/smartswitch/tree/main/Single%20Smart%20Switch/Smart_Switch) consists of the Smart Switch system codes.
 
