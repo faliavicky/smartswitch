@@ -1,7 +1,10 @@
 # Smart Switch
-A Smart Switch project for AC load power monitoring, data logging with micro SD, scheduling from mobile app with Real-Time Clock, and remote on/off load control using ESP32 and MQTT.
+A Smart Switch system for real-time remote controlling and monitoring AC loads with IoT.
+This project is also equipped with data logging using a micro SD card module and scheduling from a mobile app with real-time clock (RTC) module.
+ESP32 is used as the microcontroller with MQTT communication.
+The variables that are being monitored are the voltage, current, and watt values.
+The loads can be controlled (on/off) by users through a mobile app.
 
-# To-Do List
 - [x] <b>Single Output Smart Switch</b>
    - [x] Wattmeter
       - [x] Voltage
@@ -15,7 +18,7 @@ A Smart Switch project for AC load power monitoring, data logging with micro SD,
       - [ ] Scheduling with RTC and MQTT
    - [x] Data Logging
       - [ ] RTC Data Logging
-      - [ ] Upload Data Logging after ESP32 connected to Wi-Fi
+      - [ ] Upload Data Logging after ESP32 is connected to Wi-Fi
       - [ ] Delete previous data after uploading
 - [ ] <b>Multiple Outputs Smart Switch 1 Phase</b>
 - [ ] <b>Multiple Outputs Smart Switch 3 Phase</b>
