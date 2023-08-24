@@ -24,6 +24,10 @@ The loads can be controlled (on/off) by users through a mobile app.
       - [ ] Upload Data Logging after ESP32 is connected to Wi-Fi
       - [ ] Delete previous data after uploading
 
+### Documentation
+![Smart Switch Board](https://github.com/faliavicky/smartswitch/blob/f540cc3d1f1c7f9d2ef203a9e84e48dba2483f8d/Single%20Smart%20Switch/Documentation/Smart-Switch-Board.jpg)
+The diagram schematic can be seen [here](https://github.com/faliavicky/smartswitch/tree/main/Single%20Smart%20Switch/Documentation).
+
 ### Sensors and Components used
 
 | Sensors  | Type | Capacity |
